@@ -3,8 +3,8 @@ import User from "../models/user.model.js";
 import { APIErrors } from "../utils/apiErrors.js";
 import {
   AccessAndRefreshTokenDTO,
+  GlobalRequestDTO,
   UserDTO,
-  UserLoginDTO,
 } from "../types/user.types.js";
 
 export class UsersController {
@@ -16,7 +16,7 @@ export class UsersController {
   private generateAccesAndRefreshToken(
     userDetails: UserDTO
   ): AccessAndRefreshTokenDTO {
-    const { _id: userID } = userDetails;
+    const { _id: userID } = userDetails || {};
     const accessToken = userDetails?.generateToken(userID as string);
     const refreshToken = userDetails?.generateToken(userID as string, true);
 
@@ -24,6 +24,22 @@ export class UsersController {
       accessToken,
       refreshToken,
     };
+  }
+
+  private generateToken(
+    userDetails: UserDTO,
+    needRefreshToken = false
+  ): AccessAndRefreshTokenDTO {
+    const { _id: userID } = userDetails || {};
+    const token = userDetails?.generateToken(
+      userID as string,
+      needRefreshToken
+    );
+
+    const response = needRefreshToken
+      ? { refreshToken: token }
+      : { accessToken: token };
+    return response;
   }
 
   async createUser(req: Request, res: Response): Promise<void> {
@@ -81,11 +97,14 @@ export class UsersController {
     res.status(200).json({
       statusCode: 200,
       message: "User created successfully",
-      data: user,
+      data: {
+        name: user?.name,
+        email: user?.email,
+      },
     });
   }
 
-  async userLogin(req: UserLoginDTO, res: Response): Promise<void> {
+  async userLogin(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body;
 
     if ([email, password].some((item) => !item)) {
@@ -135,6 +154,12 @@ export class UsersController {
       const { accessToken, refreshToken } =
         this.generateAccesAndRefreshToken(userDetails);
 
+      await User.findByIdAndUpdate(userDetails?._id, {
+        $set: {
+          refreshToken,
+        },
+      });
+
       res.status(200).json({
         statusCode: 200,
         message: "User logged in successfully",
@@ -147,6 +172,39 @@ export class UsersController {
       throw new APIErrors({
         statusCode: 500,
         message: "Failed to generate token.",
+      });
+    }
+  }
+
+  async getAccessToken(req: Request, res: Response): Promise<void> {
+    try {
+      const userID = (req as GlobalRequestDTO)?.userID;
+
+      if (!userID) {
+        throw new APIErrors({
+          statusCode: 400,
+          message: "User not found",
+        });
+      }
+
+      // get userDetails from the userID
+      const userDetails = (await User.findById(userID)?.select(
+        "-password"
+      )) as UserDTO;
+
+      // get the access token
+      const { accessToken } = this.generateToken(userDetails);
+
+      // send the access token in response
+      res.status(200).json({
+        statusCode: 200,
+        message: "Access token generated successfully.",
+        data: accessToken,
+      });
+    } catch (error) {
+      throw new APIErrors({
+        statusCode: 500,
+        message: "Internal Server Error",
       });
     }
   }
