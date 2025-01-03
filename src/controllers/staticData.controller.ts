@@ -21,20 +21,22 @@ export class StaticDataController {
     const { query } = req || {};
     if (!query) {
       console.log("No query received for finding image.");
-      throw new APIErrors({
+      res.status(400).json({
         statusCode: 400,
         message: "No image with this id found",
       });
+      return;
     }
 
     const { defaultImage, id: imageID } = query || {};
 
     if (!imageID) {
       console.log("No id received in query to fetch the image.");
-      throw new APIErrors({
+      res.status(400).json({
         statusCode: 400,
         message: "No image with this id found",
       });
+      return
     }
 
     if (defaultImage) {
@@ -68,20 +70,22 @@ export class StaticDataController {
     const { query } = req || {};
     if (!query) {
       console.log("No query received for finding image.");
-      throw new APIErrors({
+      res.status(400).json({
         statusCode: 400,
         message: "No image with this id found",
       });
+      return;
     }
 
     const { defaultAudio, id: imageID } = query || {};
 
     if (!imageID) {
       console.log("No id received in query to fetch the image.");
-      throw new APIErrors({
+      res.status(400).json({
         statusCode: 400,
         message: "No image with this id found",
       });
+      return;
     }
 
     if (defaultAudio) {

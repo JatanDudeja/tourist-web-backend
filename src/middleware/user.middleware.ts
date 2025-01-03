@@ -16,10 +16,11 @@ export async function checkJWT(
   try {
     refreshTokenSecretKey = process.env.REFRESH_TOKEN_SECRET as string;
   } catch (error) {
-    throw new APIErrors({
+    res.status(500).json({
       statusCode: 500,
       message: "Internal Server Error",
     });
+    return;
   }
 
   const refreshToken = authorization?.split(" ")[1];
@@ -29,20 +30,22 @@ export async function checkJWT(
   ) as JWTResDTO;
 
   if (!decordRefreshToken || Object?.keys(decordRefreshToken)?.length === 0) {
-    throw new APIErrors({
+    res.status(401).json({
       statusCode: 401,
       message: "Unauthorized Access",
     });
+    return;
   }
 
   const userID = decordRefreshToken?.id;
   const userDetails = await User.findById(userID);
 
   if (!userDetails || refreshToken !== userDetails?.refreshToken) {
-    throw new APIErrors({
+    res.status(401).json({
       statusCode: 401,
       message: "Unauthorized Access",
     });
+    return;
   }
 
   (req as GlobalRequestDTO).userID = userID;
