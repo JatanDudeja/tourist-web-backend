@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import User from "../models/user.model.js";
-import { APIErrors } from "../utils/apiErrors.js";
 import {
   AccessAndRefreshTokenDTO,
   GlobalRequestDTO,
