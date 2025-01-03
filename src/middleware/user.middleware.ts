@@ -12,6 +12,8 @@ export async function checkJWT(
   const authorization =
     req?.headers?.["authorization"] || req?.body?.refreshToken;
 
+  console.log(">>>yoyo: ", authorization);
+
   let refreshTokenSecretKey;
   try {
     refreshTokenSecretKey = process.env.REFRESH_TOKEN_SECRET as string;
@@ -23,11 +25,20 @@ export async function checkJWT(
     return;
   }
 
-  const refreshToken = authorization?.split(" ")[1];
-  const decordRefreshToken: JWTResDTO = jwt.verify(
-    refreshToken,
-    refreshTokenSecretKey
-  ) as JWTResDTO;
+  const refreshToken =
+    authorization?.split(" ")[1] || req.cookies?.refreshToken;
+  let decordRefreshToken: JWTResDTO | null = null;
+
+  try {
+    decordRefreshToken = jwt.verify(
+      refreshToken,
+      refreshTokenSecretKey
+    ) as JWTResDTO;
+  } catch (error) {
+    console.log(
+      "CheckJWT Middleware: Error came while decoding refresh token or refresh token not received."
+    );
+  }
 
   if (!decordRefreshToken || Object?.keys(decordRefreshToken)?.length === 0) {
     res.status(401).json({

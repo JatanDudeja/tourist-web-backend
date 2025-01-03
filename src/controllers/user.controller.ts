@@ -153,7 +153,7 @@ export class UsersController {
         statusCode: 401,
         message: "Unauthorised Password!",
       });
-      return
+      return;
     }
 
     try {
@@ -166,14 +166,17 @@ export class UsersController {
         },
       });
 
-      res.status(200).json({
-        statusCode: 200,
-        message: "User logged in successfully",
-        data: {
-          accessToken,
-          refreshToken,
-        },
-      });
+      res
+        .status(200)
+        .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true })
+        .json({
+          statusCode: 200,
+          message: "User logged in successfully",
+          data: {
+            accessToken,
+            refreshToken,
+          },
+        });
     } catch (error) {
       res.status(500).json({
         statusCode: 500,
@@ -217,5 +220,22 @@ export class UsersController {
       });
       return;
     }
+  }
+
+  async logoutUser(req: Request, res: Response): Promise<void> {
+    const userID = (req as GlobalRequestDTO)?.userID;
+
+    if (!userID) {
+      res.status(400).json({
+        statusCode: 400,
+        message: "Please enter both email and password",
+      });
+      return;
+    }
+
+    res.status(200).clearCookie("refreshToken").json({
+      statusCode: 200,
+      message: "User logged out!",
+    });
   }
 }
