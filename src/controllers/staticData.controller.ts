@@ -36,7 +36,7 @@ export class StaticDataController {
         statusCode: 400,
         message: "No image with this id found",
       });
-      return
+      return;
     }
 
     if (defaultImage) {
@@ -151,7 +151,59 @@ export class StaticDataController {
       res.status(200).json({
         statusCode: 200,
         message: "All Images fetched successfully",
-        newData: { length: allImages?.length, data: allImages},
+        newData: { length: allImages?.length, data: allImages },
+      });
+      return;
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "No images found",
+      data: [],
+    });
+  }
+
+  async getAllAudios(req: Request, res: Response) {
+    const allResources = [];
+
+    for (const folder of this.folders) {
+      const resources = await getResourcesFromFolder(folder);
+      allResources.push(...resources);
+    }
+
+    if (allResources.length > 0) {
+      const allAudios: any = {};
+
+      allResources?.forEach((item) => {
+        const folderNumber = item?.folder?.replace("static_audios/", "");
+        const isDefault = item?.public_id?.search("default");
+        if (allAudios?.hasOwnProperty(folderNumber)) {
+          allAudios[folderNumber]?.push({
+            id: item?.asset_id,
+            imageID:
+              isDefault !== -1
+                ? "default"
+                : item?.public_id?.replace("/static_audios/", "")?.slice(-1),
+            url: item?.url,
+          });
+        } else {
+          allAudios[folderNumber] = [
+            {
+              id: item?.asset_id,
+              imageID:
+                isDefault !== -1
+                  ? "default"
+                  : item?.public_id?.replace("static_audios/", "")?.slice(-1),
+              url: item?.url,
+            },
+          ];
+        }
+      });
+
+      res.status(200).json({
+        statusCode: 200,
+        message: "All audios fetched successfully",
+        newData: { length: allAudios?.length, data: allAudios },
       });
       return;
     }
