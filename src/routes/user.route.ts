@@ -8,6 +8,11 @@ const userInstance = new UsersController();
 
 router.route("/createUser").post(userInstance?.createUser.bind(userInstance));
 router.route("/login").post(userInstance?.userLogin.bind(userInstance));
-router.route("/generateAccessToken").post(checkJWT, userInstance.getAccessToken.bind(userInstance))
+router
+  .route("/generateAccessToken")
+  .post(checkJWT, userInstance.getAccessToken.bind(userInstance));
+router
+  .route("/logoutUser")
+  .post(checkJWT, userInstance.logoutUser.bind(userInstance));
 
 export default router;

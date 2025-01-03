@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
-import { APIErrors } from "../utils/apiErrors.js";
 import { GlobalRequestDTO, JWTResDTO } from "../types/user.types.js";
 
 export async function checkJWT(
@@ -23,11 +22,20 @@ export async function checkJWT(
     return;
   }
 
-  const refreshToken = authorization?.split(" ")[1];
-  const decordRefreshToken: JWTResDTO = jwt.verify(
-    refreshToken,
-    refreshTokenSecretKey
-  ) as JWTResDTO;
+  const refreshToken =
+    authorization?.split(" ")[1] || req.cookies?.refreshToken;
+  let decordRefreshToken: JWTResDTO | null = null;
+
+  try {
+    decordRefreshToken = jwt.verify(
+      refreshToken,
+      refreshTokenSecretKey
+    ) as JWTResDTO;
+  } catch (error) {
+    console.log(
+      "CheckJWT Middleware: Error came while decoding refresh token or refresh token not received."
+    );
+  }
 
   if (!decordRefreshToken || Object?.keys(decordRefreshToken)?.length === 0) {
     res.status(401).json({
