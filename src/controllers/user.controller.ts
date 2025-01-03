@@ -168,7 +168,7 @@ export class UsersController {
 
       res
         .status(200)
-        .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true })
+        .cookie("refreshToken", refreshToken, { secure: true })
         .json({
           statusCode: 200,
           message: "User logged in successfully",
