@@ -5,7 +5,7 @@ import "dotenv/config";
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET, // Click 'View API Keys' above to copy your API secret
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 async function getImageUrlCloudinary(id: string) {
@@ -49,4 +49,48 @@ async function getListOfImagesFromCloudinary(id: string) {
   }
 }
 
-export { getImageUrlCloudinary, getListOfImagesFromCloudinary };
+async function getAudioList(id: string) {
+  try {
+    const audioList = await cloudinary.api.resources({
+      type: "upload",
+      prefix: `static_audio/${id}/`,
+      resource_type: "raw",
+    });
+    const audioURLs = audioList?.resources?.map(
+      (item: { [key: string]: any }) => {
+        const lastSlashIndex = item?.public_id?.lastIndexOf("/");
+        const itemName =
+          lastSlashIndex === -1
+            ? item?.public_id
+            : item?.public_id.substring(lastSlashIndex + 1);
+        return { itemName, url: item?.url };
+      }
+    );
+    return audioURLs;
+  } catch (error) {
+    console.log(
+      "Error came while fetching image list from Cloudinary. Error: ",
+      JSON.stringify(error)
+    );
+    throw new APIErrors({ statusCode: 500, message: "Internal Server Error" });
+  }
+}
+
+
+const getResourcesFromFolder = async (folder: number) => {
+  try {
+    const response = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: `static_images/${folder}/`,
+      max_results: 100, // Adjust this if needed
+    });
+
+    return response.resources;
+  } catch (error) {
+    console.error(`Error fetching resources from folder: ${folder}`, error);
+    return [];
+  }
+};
+
+
+export { getImageUrlCloudinary, getListOfImagesFromCloudinary, getAudioList, getResourcesFromFolder };

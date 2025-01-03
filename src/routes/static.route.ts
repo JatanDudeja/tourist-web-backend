@@ -15,4 +15,8 @@ router
   .route("/getStaticImages")
   .get(staticDataController.getImages.bind(staticDataController));
 
+  router
+  .route("/getAllImages")
+  .get(staticDataController.getAllImages.bind(staticDataController));
+
 export default router;
