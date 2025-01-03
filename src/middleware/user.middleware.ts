@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
-import { APIErrors } from "../utils/apiErrors.js";
 import { GlobalRequestDTO, JWTResDTO } from "../types/user.types.js";
 
 export async function checkJWT(
@@ -11,8 +10,6 @@ export async function checkJWT(
 ) {
   const authorization =
     req?.headers?.["authorization"] || req?.body?.refreshToken;
-
-  console.log(">>>yoyo: ", authorization);
 
   let refreshTokenSecretKey;
   try {
