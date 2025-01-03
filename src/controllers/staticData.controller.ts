@@ -161,6 +161,7 @@ export class StaticDataController {
       message: "No images found",
       data: [],
     });
+    return;
   }
 
   async getAllAudios(req: Request, res: Response) {
