@@ -76,11 +76,10 @@ async function getAudioList(id: string) {
   }
 }
 
-
 const getResourcesFromFolder = async (folder: number) => {
   try {
     const response = await cloudinary.api.resources({
-      type: 'upload',
+      type: "upload",
       prefix: `static_images/${folder}/`,
       max_results: 100, // Adjust this if needed
     });
@@ -92,5 +91,9 @@ const getResourcesFromFolder = async (folder: number) => {
   }
 };
 
-
-export { getImageUrlCloudinary, getListOfImagesFromCloudinary, getAudioList, getResourcesFromFolder };
+export {
+  getImageUrlCloudinary,
+  getListOfImagesFromCloudinary,
+  getAudioList,
+  getResourcesFromFolder,
+};
