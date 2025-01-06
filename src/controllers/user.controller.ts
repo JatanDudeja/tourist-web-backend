@@ -3,8 +3,10 @@ import User from "../models/user.model.js";
 import {
   AccessAndRefreshTokenDTO,
   GlobalRequestDTO,
+  JWTResDTO,
   UserDTO,
 } from "../types/user.types.js";
+import jwt from "jsonwebtoken";
 
 export class UsersController {
   private readonly emailRegex =
@@ -187,12 +189,37 @@ export class UsersController {
 
   async getAccessToken(req: Request, res: Response): Promise<void> {
     try {
-      const userID = (req as GlobalRequestDTO)?.userID;
+      const refreshTokenCookie = req?.cookies?.refreshToken;
+
+      if (!refreshTokenCookie) {
+        res.status(401).json({
+          statusCode: 401,
+          message: "Unauthorized Acesss",
+        });
+        return;
+      }
+
+      let refreshTokenDetails;
+
+      try {
+        refreshTokenDetails = jwt.verify(
+          refreshTokenCookie,
+          process.env.REFRESH_TOKEN_SECRET as string
+        ) as JWTResDTO;
+      } catch (error) {
+        res.status(401).json({
+          statusCode: 401,
+          message: "Unauthorized Access",
+        });
+        return;
+      }
+
+      const userID = refreshTokenDetails?.id;
 
       if (!userID) {
-        res.status(400).json({
-          statusCode: 400,
-          message: "User not found",
+        res.status(401).json({
+          statusCode: 401,
+          message: "Unauthorized Access",
         });
         return;
       }
@@ -201,6 +228,20 @@ export class UsersController {
       const userDetails = (await User.findById(userID)?.select(
         "-password"
       )) as UserDTO;
+
+      if (refreshTokenCookie !== userDetails?.refreshToken) {
+        await User.findByIdAndUpdate(userID, {
+          refreshToken: null,
+        });
+
+        res.clearCookie("refreshToken");
+
+        res.status(401).json({
+          statusCode: 401,
+          message: "Unauthorized Access",
+        });
+        return;
+      }
 
       // get the access token
       const { accessToken } = this.generateToken(userDetails);
@@ -236,5 +277,41 @@ export class UsersController {
       statusCode: 200,
       message: "User logged out!",
     });
+  }
+
+  async getUserProfile(req: Request, res: Response): Promise<void> {
+    const userID = (req as GlobalRequestDTO)?.userID;
+
+    if (!userID) {
+      res.status(401).json({
+        statusCode: 401,
+        message: "Unauthorized Access",
+      });
+      return;
+    }
+
+    const userDetails = await User.findById(userID).select(
+      "-password -refreshToken -createdAt -updatedAt"
+    );
+
+    if (!userDetails) {
+      res.status(401).json({
+        statusCode: 401,
+        message: "Unauthorized Access",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "User details fetched successfully",
+      data: {
+        name: userDetails?.name,
+        userID: userDetails?._id,
+        email: userDetails?.email,
+      },
+    });
+
+    return;
   }
 }

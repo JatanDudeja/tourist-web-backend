@@ -9,11 +9,11 @@ export async function checkJWT(
   next: NextFunction
 ) {
   const authorization =
-    req?.headers?.["authorization"] || req?.body?.refreshToken;
+    req?.headers?.["authorization"] || req?.body?.accessToken;
 
-  let refreshTokenSecretKey;
+  let accessTokenSecretKey;
   try {
-    refreshTokenSecretKey = process.env.REFRESH_TOKEN_SECRET as string;
+    accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET as string;
   } catch (error) {
     res.status(500).json({
       statusCode: 500,
@@ -22,33 +22,24 @@ export async function checkJWT(
     return;
   }
 
-  const refreshToken =
-    authorization?.split(" ")[1] || req.cookies?.refreshToken;
-  let decordRefreshToken: JWTResDTO | null = null;
+  const accessToken = authorization?.split(" ")[1];
+  let accessTokenDetails: JWTResDTO | null = null;
 
   try {
-    decordRefreshToken = jwt.verify(
-      refreshToken,
-      refreshTokenSecretKey
+    accessTokenDetails = jwt.verify(
+      accessToken,
+      accessTokenSecretKey
     ) as JWTResDTO;
   } catch (error) {
     console.log(
-      "CheckJWT Middleware: Error came while decoding refresh token or refresh token not received."
+      "CheckJWT Middleware: Error came while decoding access token or acces token not received."
     );
   }
 
-  if (!decordRefreshToken || Object?.keys(decordRefreshToken)?.length === 0) {
-    res.status(401).json({
-      statusCode: 401,
-      message: "Unauthorized Access",
-    });
-    return;
-  }
-
-  const userID = decordRefreshToken?.id;
+  const userID = accessTokenDetails?.id;
   const userDetails = await User.findById(userID);
 
-  if (!userDetails || refreshToken !== userDetails?.refreshToken) {
+  if (!userDetails || !userDetails || Object.keys(userDetails)?.length === 0) {
     res.status(401).json({
       statusCode: 401,
       message: "Unauthorized Access",
@@ -56,7 +47,7 @@ export async function checkJWT(
     return;
   }
 
-  (req as GlobalRequestDTO).userID = userID;
+  (req as GlobalRequestDTO).userID = userID as string;
 
   next();
 }

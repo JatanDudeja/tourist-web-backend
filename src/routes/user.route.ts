@@ -10,9 +10,13 @@ router.route("/createUser").post(userInstance?.createUser.bind(userInstance));
 router.route("/login").post(userInstance?.userLogin.bind(userInstance));
 router
   .route("/generateAccessToken")
-  .post(checkJWT, userInstance.getAccessToken.bind(userInstance));
+  .post(userInstance.getAccessToken.bind(userInstance));
 router
   .route("/logoutUser")
   .post(checkJWT, userInstance.logoutUser.bind(userInstance));
+
+router
+  .route("/profile")
+  .get(checkJWT, userInstance?.getUserProfile.bind(userInstance));
 
 export default router;
