@@ -76,11 +76,14 @@ async function getAudioList(id: string) {
   }
 }
 
-const getResourcesFromFolder = async (folder: number) => {
+const getResourcesFromFolder = async (
+  folder: number,
+  mainFolder = "static_audios"
+) => {
   try {
     const response = await cloudinary.api.resources({
       type: "upload",
-      prefix: `static_images/${folder}/`,
+      prefix: `${mainFolder}/${folder}/`,
       max_results: 100, // Adjust this if needed
     });
 

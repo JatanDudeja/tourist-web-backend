@@ -132,7 +132,7 @@ export class StaticDataController {
               isDefault !== -1
                 ? "default"
                 : item?.public_id?.replace("/static_images/", "")?.slice(-1),
-            url: item?.url,
+            url: item?.secure_url,
           });
         } else {
           allImages[folderNumber] = [
@@ -142,7 +142,7 @@ export class StaticDataController {
                 isDefault !== -1
                   ? "default"
                   : item?.public_id?.replace("static_images/", "")?.slice(-1),
-              url: item?.url,
+              url: item?.secure_url,
             },
           ];
         }
@@ -185,7 +185,7 @@ export class StaticDataController {
               isDefault !== -1
                 ? "default"
                 : item?.public_id?.replace("/static_audios/", "")?.slice(-1),
-            url: item?.url,
+            url: item?.secure_url,
           });
         } else {
           allAudios[folderNumber] = [
@@ -195,7 +195,7 @@ export class StaticDataController {
                 isDefault !== -1
                   ? "default"
                   : item?.public_id?.replace("static_audios/", "")?.slice(-1),
-              url: item?.url,
+              url: item?.secure_url,
             },
           ];
         }
@@ -214,5 +214,58 @@ export class StaticDataController {
       message: "No images found",
       data: [],
     });
+  }
+
+  async getPlaceData(req: Request, res: Response): Promise<void> {
+    const { id } = req?.query;
+
+    if (!id) {
+      res.status(400).json({
+        statusCode: 400,
+        message: "No id found",
+      });
+    }
+
+    const [rawPlaceImages, rawPlaceAudios] = await Promise.all([
+      getResourcesFromFolder(Number(id), "static_images"),
+      getResourcesFromFolder(Number(id)),
+    ]);
+
+    const filteredPlaceImages = rawPlaceImages?.map((item: any) => {
+      const isDefault = item?.public_id?.search("default");
+      return {
+        id: item?.asset_id,
+        imageID:
+          isDefault !== -1
+            ? "default"
+            : item?.public_id?.replace("/static_images/", "")?.slice(-1),
+        url: item?.secure_url,
+      };
+    });
+
+    const filteredPlaceAudios = rawPlaceImages?.map((item: any) => {
+      const isDefault = item?.public_id?.search("default");
+      return {
+        id: item?.asset_id,
+        imageID:
+          isDefault !== -1
+            ? "default"
+            : item?.public_id?.replace("/static_audios/", "")?.slice(-1),
+        url: item?.secure_url,
+      };
+    });
+
+    const placeCompleteData = {
+      ...placesDescription[Number(id)],
+      images: filteredPlaceImages,
+      audios: filteredPlaceAudios,
+    };
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "Data fetched successfully.",
+      data: placeCompleteData,
+    });
+    return;
   }
 }

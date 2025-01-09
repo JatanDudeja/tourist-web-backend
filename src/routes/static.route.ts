@@ -23,4 +23,6 @@ router
   .route("/getAllAudios")
   .get(staticDataController.getAllAudios.bind(staticDataController));
 
+router?.route("/placeData").get(staticDataController.getPlaceData.bind(staticDataController))
+
 export default router;
