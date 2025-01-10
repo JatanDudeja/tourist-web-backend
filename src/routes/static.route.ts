@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { StaticDataController } from "../controllers/staticData.controller.js";
+import { checkJWT } from "../middleware/user.middleware.js";
 
 const router = Router();
 
@@ -23,6 +24,15 @@ router
   .route("/getAllAudios")
   .get(staticDataController.getAllAudios.bind(staticDataController));
 
-router?.route("/placeData").get(staticDataController.getPlaceData.bind(staticDataController))
+router
+  ?.route("/placeData")
+  .get(staticDataController.getPlaceData.bind(staticDataController));
+
+router
+  ?.route("/placeData/subscribe/:id")
+  .get(
+    checkJWT,
+    staticDataController.getPaidPlaceData.bind(staticDataController)
+  );
 
 export default router;

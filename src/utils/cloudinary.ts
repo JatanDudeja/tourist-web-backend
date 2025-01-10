@@ -76,9 +76,27 @@ async function getAudioList(id: string) {
   }
 }
 
+const getSingleResouceFromFolder = async (
+  folder: number,
+  mainFolder = "static_audios",
+  fileName = "default"
+) => {
+  const publicId = `${mainFolder}/${folder}/${fileName}`;
+
+  // Generate the signed URL
+  const signedUrl = cloudinary.url(publicId, {
+    secure: true,
+    sign_url: true,
+    expires_at: Math.floor(Date.now() / 1000) + 5, // Expires in 50 seconds
+  });
+
+  return signedUrl;
+};
+
 const getResourcesFromFolder = async (
   folder: number,
-  mainFolder = "static_audios"
+  mainFolder = "static_audios",
+  paid?: boolean
 ) => {
   try {
     const response = await cloudinary.api.resources({
@@ -99,4 +117,5 @@ export {
   getListOfImagesFromCloudinary,
   getAudioList,
   getResourcesFromFolder,
+  getSingleResouceFromFolder,
 };

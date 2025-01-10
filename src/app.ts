@@ -3,6 +3,8 @@ import cors from "cors";
 import UserRouter from "./routes/user.route.js";
 import cookieParser from "cookie-parser";
 import StaticRouter from "./routes/static.route.js";
+import TourRouter from "./routes/tour.route.js";
+import PurchasedTourRouter from "./routes/purchasedTour.route.js";
 
 const app = express();
 
@@ -26,5 +28,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/v1/users", UserRouter);
 app.use("/api/v1", StaticRouter);
+app.use("/api/v1/tours", TourRouter);
+app.use("/api/v1/purchased", PurchasedTourRouter);
 
 export default app;
