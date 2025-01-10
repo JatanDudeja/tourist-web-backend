@@ -222,7 +222,7 @@ export class StaticDataController {
   }
 
   async getPlaceData(req: Request, res: Response): Promise<void> {
-    const { id } = req?.query;
+    const { id } = req?.params;
 
     if (!id) {
       res.status(400).json({
