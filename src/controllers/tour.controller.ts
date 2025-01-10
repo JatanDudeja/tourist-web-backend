@@ -3,13 +3,13 @@ import Tour from "../models/tour.model.js";
 
 export class TourController {
   async createTour(req: Request, res: Response) {
-    const { name, description, place } = req.body || {};
+    const { mappingID, name, description, place } = req.body || {};
     console.log(">>>name, description, place: ", name, description, place);
 
-    if ([name, description, place].some((item) => !item)) {
+    if ([mappingID, name, description, place].some((item) => !item)) {
       res.status(400).json({
         statusCode: 400,
-        message: "name, description and place are required fields",
+        message: "mappingID, name, description and place are required fields",
       });
       return;
     }
@@ -25,13 +25,10 @@ export class TourController {
         .status(200)
         .json({ statusCode: 200, message: "Tour added successfully!" });
     } catch (error) {
-      console.log(
-        ">>>here: ",
-        res.status(500).json({
-          statusCode: 500,
-          message: "Please try again after sometime",
-        })
-      );
+      res.status(500).json({
+        statusCode: 500,
+        message: "Please try again after sometime",
+      });
     }
     return;
   }

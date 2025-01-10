@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const tourSchema = new mongoose.Schema(
   {
+    mappingID: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -12,8 +16,12 @@ const tourSchema = new mongoose.Schema(
       required: true,
     },
     place: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
     },
     deletedAt: {
       type: Date,

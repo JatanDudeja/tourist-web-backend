@@ -266,9 +266,9 @@ export class UsersController {
     const userID = (req as GlobalRequestDTO)?.userID;
 
     if (!userID) {
-      res.status(400).json({
+      res.status(401).json({
         statusCode: 400,
-        message: "Please enter both email and password",
+        message: "No userID found",
       });
       return;
     }
