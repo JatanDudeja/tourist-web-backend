@@ -5,7 +5,12 @@ import {
   getImageUrlCloudinary,
   getListOfImagesFromCloudinary,
   getResourcesFromFolder,
+  getSingleResouceFromFolder,
 } from "../utils/cloudinary.js";
+import { GlobalRequestDTO } from "../types/user.types.js";
+import User from "../models/user.model.js";
+import PurchasedTour from "../models/purchasedTour.model.js";
+import Tour from "../models/tour.model.js";
 
 export class StaticDataController {
   private readonly folders = [1, 2, 3, 4, 5];
@@ -115,7 +120,7 @@ export class StaticDataController {
     const allResources = [];
 
     for (const folder of this.folders) {
-      const resources = await getResourcesFromFolder(folder);
+      const resources = await getResourcesFromFolder(folder, "static_images");
       allResources.push(...resources);
     }
 
@@ -243,28 +248,79 @@ export class StaticDataController {
       };
     });
 
-    const filteredPlaceAudios = rawPlaceImages?.map((item: any) => {
+    const filteredPlaceAudios = rawPlaceAudios?.map((item: any) => {
       const isDefault = item?.public_id?.search("default");
       return {
         id: item?.asset_id,
         imageID:
           isDefault !== -1
             ? "default"
-            : item?.public_id?.replace("/static_audios/", "")?.slice(-1),
+            : item?.public_id?.replace("/static_audios/demo", "")?.slice(-1),
         url: item?.secure_url,
       };
     });
 
     const placeCompleteData = {
-      ...placesDescription[Number(id)],
-      images: filteredPlaceImages,
-      audios: filteredPlaceAudios,
+      ...placesDescription[Number(id) - 1],
+      images: filteredPlaceImages || [],
+      audios: filteredPlaceAudios || [],
     };
 
     res.status(200).json({
       statusCode: 200,
       message: "Data fetched successfully.",
       data: placeCompleteData,
+    });
+    return;
+  }
+
+  async getPaidPlaceData(req: Request, res: Response): Promise<void> {
+    const { userID } = (req as GlobalRequestDTO) || {};
+
+    const { id } = req?.params || {};
+
+    if (!id || !userID) {
+      res.status(400).json({
+        statusCode: 400,
+        message: "Id and userID not found!",
+      });
+
+      return;
+    }
+
+    const userDetails = await User.findById(userID);
+
+    if (!userDetails) {
+      res.status(401).json({
+        statusCode: 401,
+        message: "Unauthorized access!",
+      });
+
+      return;
+    }
+    const tourDetails = await Tour.findById(id);
+
+    const isCoursePurchased = await PurchasedTour.findOne({
+      tourID: tourDetails?.id, // Use the `tourID` from the `Tour` document you retrieved
+      userID: userDetails?.id, // Use the `userID` (from request or context)
+    });
+
+    if (isCoursePurchased) {
+      // The user has purchased the tour
+    } else {
+      // The user has not purchased the tour
+      res.status(401).json({
+        statusCode: 401,
+        message: "Please pay to listen to the tour.",
+      });
+    }
+
+    const paidAudiosContent = getSingleResouceFromFolder(1, "static_images")
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "Content Fetched Successfully",
+      data: paidAudiosContent,
     });
     return;
   }
