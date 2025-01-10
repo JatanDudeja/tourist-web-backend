@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import StaticRouter from "./routes/static.route.js";
 import TourRouter from "./routes/tour.route.js";
 import PurchasedTourRouter from "./routes/purchasedTour.route.js";
+import OrderRouter from "./routes/order.route.js";
 
 const app = express();
 
@@ -30,5 +31,6 @@ app.use("/api/v1/users", UserRouter);
 app.use("/api/v1", StaticRouter);
 app.use("/api/v1/tours", TourRouter);
 app.use("/api/v1/purchased", PurchasedTourRouter);
+app.use("/api/v1/orders/", OrderRouter);
 
 export default app;

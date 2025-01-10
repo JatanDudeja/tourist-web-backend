@@ -25,7 +25,7 @@ router
   .get(staticDataController.getAllAudios.bind(staticDataController));
 
 router
-  ?.route("/placeData")
+  ?.route("/placeData/:id")
   .get(staticDataController.getPlaceData.bind(staticDataController));
 
 router

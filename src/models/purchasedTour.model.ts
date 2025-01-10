@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
-
 const purchasedTourSchema = new mongoose.Schema(
   {
+    orderID: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Order",
+    },
     tourID: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
