@@ -136,7 +136,7 @@ export class OrderController {
         console.log(">>>orderID with id: ", newOrder?.id, ", orderID with _id: ", newOrder?._id);
         updateOrder = await Order.findOneAndUpdate(
           {
-            id: newOrder?._id,
+            id: newOrder?.id,
           },
           {
             $set: {
@@ -153,6 +153,7 @@ export class OrderController {
         console.log(
           `Attempt ${i + 1} to update order with orderID - ${newOrder?.id}.`
         );
+        console.log(">>>error in updating order: ", error);
       }
     }
 
