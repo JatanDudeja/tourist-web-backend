@@ -25,7 +25,7 @@ export function checkSignature(
   razorpaySignature: string,
   razorpayResponse: string
 ): boolean {
-  const secret = process.env.RAZORPAY_SECRET as string;
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET as string;
 
   const expectedSignature = crypto
     .createHmac("sha256", secret)
