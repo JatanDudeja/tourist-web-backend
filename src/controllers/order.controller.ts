@@ -94,11 +94,27 @@ export class OrderController {
 
     console.log(">>>orderDetails: ", userID, tourID, newOrder);
 
-    const razorpayOrderDetails = await razorpayInstance.orders.create({
-      amount: Number(tourDetails?.amount) * 100,
-      currency: "INR",
-      receipt: newOrder?.id,
-    });
+    let razorpayOrderDetails;
+    
+    
+    try {
+      razorpayOrderDetails = await razorpayInstance.orders.create({
+        amount: Number(tourDetails?.amount) * 100,
+        currency: "INR",
+        receipt: newOrder?.id,
+      });
+    } catch (error) {
+      console.log(">>>error in razorpay order details: ", error);
+      res
+        .status(500)
+        .json(
+          createResponseObject(
+            500,
+            "Our payment partner is facing some issue. Please try again in sometime."
+          )
+        );
+        return
+    }
 
     console.log(">>>razorpayOrderDetails: ", razorpayOrderDetails);
 
