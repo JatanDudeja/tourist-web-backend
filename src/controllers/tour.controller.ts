@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
 import Tour from "../models/tour.model.js";
+import {
+  getResourcesFromFolder,
+  getSingleResouceFromFolder,
+} from "../utils/cloudinary.js";
+import PurchasedTour from "../models/purchasedTour.model.js";
+import User from "../models/user.model.js";
+import { GlobalRequestDTO } from "../types/user.types.js";
 
 export class TourController {
   async createTour(req: Request, res: Response) {
@@ -64,6 +71,72 @@ export class TourController {
         message: "Please try again after sometime",
       });
     }
+    return;
+  }
+
+  async getTour(req: Request, res: Response): Promise<void> {
+    const { id } = req?.params;
+
+    if (!id) {
+      res.status(400).json({
+        statusCode: 400,
+        message: "No id found",
+      });
+    }
+
+    const tourDetails = await Tour.findById(id).select(
+      "-createdAt -updatedAt -__v -deletedAt"
+    );
+
+    const [rawPlaceImages, rawPlaceAudios] = await Promise.all([
+      getResourcesFromFolder(Number(tourDetails?.mappingID), "static_images"),
+      getResourcesFromFolder(Number(tourDetails?.mappingID)),
+    ]);
+
+    const placesDescription = {
+      id: tourDetails?._id,
+      name: tourDetails?.name,
+      description: tourDetails?.description,
+      place: tourDetails?.place,
+      amount: tourDetails?.amount,
+      mappingID: tourDetails?.mappingID,
+    };
+
+    const filteredPlaceImages = rawPlaceImages?.map((item: any) => {
+      const isDefault = item?.public_id?.search("default");
+      return {
+        id: item?.asset_id,
+        imageID:
+          isDefault !== -1
+            ? "default"
+            : item?.public_id?.replace("/static_images/", "")?.slice(-1),
+        url: item?.secure_url,
+      };
+    });
+
+    const filteredPlaceAudios = rawPlaceAudios?.map((item: any) => {
+      const isDefault = item?.public_id?.search("default");
+      return {
+        id: item?.asset_id,
+        imageID:
+          isDefault !== -1
+            ? "default"
+            : item?.public_id?.replace("/static_audios/demo", "")?.slice(-1),
+        url: item?.secure_url,
+      };
+    });
+
+    const placeCompleteData = {
+      ...placesDescription,
+      images: filteredPlaceImages || [],
+      audios: filteredPlaceAudios || [],
+    };
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "Data fetched successfully.",
+      data: placeCompleteData,
+    });
     return;
   }
 }
