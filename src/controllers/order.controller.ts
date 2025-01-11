@@ -240,6 +240,7 @@ export class OrderController {
     );
 
     if (!doesSignatureMatch) {
+      console.log(">>>signature did not match")
       res
         .status(411)
         .json(createResponseObject(411, "Razorpay signature does not match"));
@@ -248,6 +249,8 @@ export class OrderController {
 
     const { razorpay_order_id, razorpay_payment_id } =
       req.body.payload.payment.entity;
+
+    console.log(">>>razorpay_order_id: ", razorpay_order_id);
 
     const {
       tourID,
@@ -268,9 +271,9 @@ export class OrderController {
       return;
     }
 
-    const session = await mongoose.startSession();
-
+    
     if (req.body.event === "order.paid") {
+      const session = await mongoose.startSession();
       // Payment successful, update order status in DB
       try {
         session.startTransaction();
@@ -311,7 +314,7 @@ export class OrderController {
     if (req.body.event === "payment.failed") {
       // Payment failed, update order status in DB
       await Order.findOneAndUpdate(
-        { razorpayOrderID: razorpay_order_id },
+        { _id: orderID },
         { $set: { status: 2 } },
         { new: true }
       );
