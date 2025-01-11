@@ -2,6 +2,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 
 export function getRazorpayInstance(): Razorpay {
+  console.log(">>>getRazorpayInstance: ", process.env.RAZORPAY_KEY, process.env.RAZORPAY_SECRET);
   const razorpayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY as string,
     key_secret: process.env.RAZORPAY_SECRET as string,
