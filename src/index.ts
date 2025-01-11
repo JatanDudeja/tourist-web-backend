@@ -20,6 +20,6 @@ connectToDB()
 
 /* TODO:
 1. Add S3 instead of cloudinary
-2. Add login in create-order api for checking if the user has already 
+2. Add logic in create-order api for checking if the user has already 
    purchased the course or not if yes then don't allow buying it again
 */
