@@ -6,7 +6,7 @@ const router = Router();
 
 const orderControllerInstance = new OrderController();
 
-router.route("/check").get(orderControllerInstance.getRazoropayCreds.bind(orderControllerInstance));
+// router.route("/check").get(orderControllerInstance.getRazoropayCreds.bind(orderControllerInstance));s
 
 // Webhook Payment URL
 router

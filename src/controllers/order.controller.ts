@@ -311,10 +311,12 @@ export class OrderController {
     if (req.body.event === "payment.failed") {
       // Payment failed, update order status in DB
       await Order.findOneAndUpdate(
-        { razorpayOrderId: razorpay_order_id },
+        { razorpayOrderID: razorpay_order_id },
         { $set: { status: 2 } },
         { new: true }
       );
+
+      console.log(">>>in failed block: ",  razorpay_order_id, orderID);
     }
 
     res.status(200).json({ message: "Webhook processed" });
