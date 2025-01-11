@@ -206,6 +206,8 @@ export class OrderController {
       return;
     }
 
+    console.log(">>>razorpaySignature: ", JSON.stringify(req.headers));
+    console.log(">>>razorpayBody: ", JSON.stringify(req?.body));
     const doesSignatureMatch = checkSignature(
       razorpaySignature?.toString(),
       razorpayresponse
