@@ -95,8 +95,7 @@ export class OrderController {
     console.log(">>>orderDetails: ", userID, tourID, newOrder);
 
     let razorpayOrderDetails;
-    
-    
+
     try {
       razorpayOrderDetails = await razorpayInstance.orders.create({
         amount: Number(tourDetails?.amount) * 100,
@@ -113,7 +112,7 @@ export class OrderController {
             "Our payment partner is facing some issue. Please try again in sometime."
           )
         );
-        return
+      return;
     }
 
     console.log(">>>razorpayOrderDetails: ", razorpayOrderDetails);
@@ -131,31 +130,36 @@ export class OrderController {
     }
 
     let updateOrder;
-    for (let i = 0; i < 3; i++) {
-      try {
-        console.log(">>>orderID with id: ", newOrder?.id, ", orderID with _id: ", newOrder?._id);
-        updateOrder = await Order.findOneAndUpdate(
-          {
-            id: newOrder?.id,
+    // for (let i = 0; i < 3; i++) {
+    try {
+      console.log(
+        ">>>orderID with id: ",
+        newOrder?.id,
+        ", orderID with _id: ",
+        newOrder?._id
+      );
+      updateOrder = await Order.findOneAndUpdate(
+        {
+          id: newOrder?.id,
+        },
+        {
+          $set: {
+            razorpayOrderID: razorpayOrderDetails?.id,
           },
-          {
-            $set: {
-              razorpayOrderID: razorpayOrderDetails?.id,
-            },
-          },
-          { new: true }
-        );
+        },
+        { new: true }
+      );
 
-        if (updateOrder?.razorpayOrderID) {
-          break;
-        }
-      } catch (error) {
-        console.log(
-          `Attempt ${i + 1} to update order with orderID - ${newOrder?.id}.`
-        );
-        console.log(">>>error in updating order: ", error);
-      }
+      // if (updateOrder?.razorpayOrderID) {
+      //   break;
+      // }
+    } catch (error) {
+      // console.log(
+      //   `Attempt ${i + 1} to update order with orderID - ${newOrder?.id}.`
+      // );
+      console.log(">>>error in updating order: ", error);
     }
+    // }
 
     if (!updateOrder) {
       console.log(
