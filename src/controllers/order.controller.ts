@@ -240,54 +240,33 @@ export class OrderController {
     );
 
     if (!doesSignatureMatch) {
-      console.log(">>>signature did not match")
+      console.log(">>>signature did not match");
       res
         .status(411)
         .json(createResponseObject(411, "Razorpay signature does not match"));
       return;
     }
 
-    const { razorpay_order_id, razorpay_payment_id } =
-      req.body.payload.payment.entity;
+    const { id, order_id } = req.body.payload.payment.entity;
 
-    console.log(">>>razorpay_order_id: ", razorpay_order_id);
+    console.log(">>>razorpay_order_id: ", id, order_id);
 
-    const {
-      tourID,
-      userID,
-      _id: orderID,
-    } = (await Order.findOne({
-      razorpayOrderID: razorpay_order_id,
-    }).select("tourID userID _id")) as {
-      tourID: string;
-      userID: string;
-      _id: string;
-    };
-
-    if (!tourID || !userID) {
-      res
-        .status(411)
-        .json(createResponseObject(411, "No details of the order found"));
-      return;
-    }
-
-    
     if (req.body.event === "order.paid") {
       const session = await mongoose.startSession();
       // Payment successful, update order status in DB
       try {
         session.startTransaction();
 
-        await Order.findOneAndUpdate(
-          { razorpayOrderID: razorpay_order_id },
-          { $set: { razorpayPaymentId: razorpay_payment_id, status: 1 } },
+        const udpatedOrderDetails = await Order.findOneAndUpdate(
+          { razorpayOrderID: order_id },
+          { $set: { razorpayPaymentID: id, status: 1 } },
           { new: true }
         );
 
         await PurchasedTour.create({
-          orderID,
-          tourID,
-          userID,
+          orderID: udpatedOrderDetails?._id,
+          tourID: udpatedOrderDetails?.tourID,
+          userID: udpatedOrderDetails?.userID,
         });
 
         session.commitTransaction();
@@ -314,12 +293,12 @@ export class OrderController {
     if (req.body.event === "payment.failed") {
       // Payment failed, update order status in DB
       await Order.findOneAndUpdate(
-        { _id: orderID },
+        { razorpayOrderID: order_id },
         { $set: { status: 2 } },
         { new: true }
       );
 
-      console.log(">>>in failed block: ",  razorpay_order_id, orderID);
+      console.log(">>>in failed block: ", id);
     }
 
     res.status(200).json({ message: "Webhook processed" });
