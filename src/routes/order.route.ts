@@ -6,10 +6,12 @@ const router = Router();
 
 const orderControllerInstance = new OrderController();
 
+// router.route("/check").get(orderControllerInstance.getRazoropayCreds.bind(orderControllerInstance));s
+
 // Webhook Payment URL
 router
   .route("/verifyPayment/webhook")
-  .post(orderControllerInstance.createOrder.bind(orderControllerInstance));
+  .post(orderControllerInstance.verifyPayment.bind(orderControllerInstance));
 
 // Get Order Details
 router
@@ -21,7 +23,7 @@ router
 
 // Create Order API
 router
-  .route("/:orderID")
+  .route("/:tourID")
   .post(
     checkJWT,
     orderControllerInstance.createOrder.bind(orderControllerInstance)

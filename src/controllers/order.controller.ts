@@ -4,10 +4,13 @@ import User from "../models/user.model.js";
 import Tour from "../models/tour.model.js";
 import {
   checkSignature,
+  getRazorpayCreds,
   getRazorpayInstance,
 } from "../utils/paymentGateway.js";
 import Order from "../models/order.model.js";
 import { GlobalRequestDTO } from "../types/user.types.js";
+import mongoose from "mongoose";
+import PurchasedTour from "../models/purchasedTour.model.js";
 
 export class OrderController {
   async createOrder(req: Request, res: Response): Promise<void> {
@@ -51,7 +54,7 @@ export class OrderController {
         .json(
           createResponseObject(
             422,
-            "Our payment parnter is currently not working we will be back soon"
+            "Our payment partner is currently facing issues we will be back soon"
           )
         );
     }
@@ -89,11 +92,26 @@ export class OrderController {
       return;
     }
 
-    const razorpayOrderDetails = await razorpayInstance.orders.create({
-      amount: Number(tourDetails?.amount) * 100,
-      currency: "INR",
-      receipt: newOrder?.id,
-    });
+    let razorpayOrderDetails;
+
+    try {
+      razorpayOrderDetails = await razorpayInstance.orders.create({
+        amount: Number(tourDetails?.amount) * 100,
+        currency: "INR",
+        receipt: newOrder?.id,
+      });
+    } catch (error) {
+      console.log(">>>error in razorpay order details: ", error);
+      res
+        .status(500)
+        .json(
+          createResponseObject(
+            500,
+            "Our payment partner is facing some issue. Please try again in sometime."
+          )
+        );
+      return;
+    }
 
     if (!razorpayOrderDetails) {
       res
@@ -108,24 +126,20 @@ export class OrderController {
     }
 
     let updateOrder;
-    for (let i = 0; i < 3; i++) {
-      try {
-        updateOrder = await Order.findOneAndUpdate(
-          {
-            id: newOrder?.id,
+    try {
+      updateOrder = await Order.findOneAndUpdate(
+        {
+          _id: newOrder?._id,
+        },
+        {
+          $set: {
+            razorpayOrderID: razorpayOrderDetails?.id,
           },
-          {
-            $set: {
-              razorpayOrderID: razorpayOrderDetails?.id,
-            },
-          },
-          { new: true }
-        );
-
-        if (updateOrder) {
-          break;
-        }
-      } catch (error) {}
+        },
+        { new: true }
+      );
+    } catch (error) {
+      console.log(">>>error in updating order: ", error);
     }
 
     if (!updateOrder) {
@@ -183,15 +197,6 @@ export class OrderController {
   }
 
   async verifyPayment(req: Request, res: Response): Promise<void> {
-    const { userID } = req as GlobalRequestDTO;
-
-    const { orderID } = req.params;
-
-    if (!orderID) {
-      res.status(411).json(createResponseObject(411, "No orderID found"));
-      return;
-    }
-
     const razorpaySignature = req.headers["x-razorpay-signature"];
 
     const razorpayresponse = JSON.stringify(req.body);
@@ -220,27 +225,67 @@ export class OrderController {
       return;
     }
 
-    const { razorpay_order_id, razorpay_payment_id } =
-      req.body.payload.payment.entity;
+    const { id, order_id } = req.body.payload.payment.entity;
 
     if (req.body.event === "order.paid") {
+      const session = await mongoose.startSession();
       // Payment successful, update order status in DB
-      await Order.findOneAndUpdate(
-        { razorpayOrderID: razorpay_order_id },
-        { $set: { razorpayPaymentId: razorpay_payment_id, status: 1 } },
-        { new: true }
-      );
+      try {
+        session.startTransaction();
+
+        const udpatedOrderDetails = await Order.findOneAndUpdate(
+          { razorpayOrderID: order_id },
+          { $set: { razorpayPaymentID: id, status: 1 } },
+          { new: true }
+        );
+
+        await PurchasedTour.create({
+          orderID: udpatedOrderDetails?._id,
+          tourID: udpatedOrderDetails?.tourID,
+          userID: udpatedOrderDetails?.userID,
+        });
+
+        session.commitTransaction();
+
+        session.endSession();
+        res.status(200).json(createResponseObject(200, "Payment successful"));
+        return;
+      } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+
+        res
+          .status(500)
+          .json(
+            createResponseObject(
+              500,
+              "Something went wrong. Please try again in sometime"
+            )
+          );
+        return;
+      }
     }
 
     if (req.body.event === "payment.failed") {
       // Payment failed, update order status in DB
       await Order.findOneAndUpdate(
-        { razorpayOrderId: razorpay_order_id },
-        { $set: { status: 2 } },
+        { razorpayOrderID: order_id },
+        { $set: { razorpayPaymentID: id, status: 2 } },
         { new: true }
       );
     }
 
     res.status(200).json({ message: "Webhook processed" });
+    return;
+  }
+
+  async getRazoropayCreds(req: Request, res: Response): Promise<void> {
+    const razorpayCreds = getRazorpayCreds();
+
+    res.status(200).json({
+      ...razorpayCreds,
+    });
+
+    return;
   }
 }

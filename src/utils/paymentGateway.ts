@@ -10,11 +10,21 @@ export function getRazorpayInstance(): Razorpay {
   return razorpayInstance;
 }
 
+export function getRazorpayCreds(): {
+  key_id: string;
+  key_secret: string;
+} {
+  return {
+    key_id: process.env.RAZORPAY_KEY as string,
+    key_secret: process.env.RAZORPAY_SECRET as string,
+  };
+}
+
 export function checkSignature(
   razorpaySignature: string,
   razorpayResponse: string
 ): boolean {
-  const secret = process.env.RAZORPAY_SECRET as string;
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET as string;
 
   const expectedSignature = crypto
     .createHmac("sha256", secret)
