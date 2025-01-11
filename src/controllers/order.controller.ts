@@ -140,7 +140,7 @@ export class OrderController {
       );
       updateOrder = await Order.findOneAndUpdate(
         {
-          id: newOrder?.id,
+          _id: newOrder?._id,
         },
         {
           $set: {
