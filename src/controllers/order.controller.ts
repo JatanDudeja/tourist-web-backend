@@ -294,7 +294,7 @@ export class OrderController {
       // Payment failed, update order status in DB
       await Order.findOneAndUpdate(
         { razorpayOrderID: order_id },
-        { $set: { status: 2 } },
+        { $set: { razorpayPaymentId: id, status: 2 } },
         { new: true }
       );
 
