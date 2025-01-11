@@ -10,6 +10,16 @@ export function getRazorpayInstance(): Razorpay {
   return razorpayInstance;
 }
 
+export function getRazorpayCreds(): {
+  key_id: string;
+  key_secret: string;
+} {
+  return {
+    key_id: process.env.RAZORPAY_KEY as string,
+    key_secret: process.env.RAZORPAY_SECRET as string,
+  };
+}
+
 export function checkSignature(
   razorpaySignature: string,
   razorpayResponse: string

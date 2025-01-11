@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const tourSchema = new mongoose.Schema(
   {
     mappingID: {
-      type: String,
+      type: Number,
       required: true,
     },
     name: {

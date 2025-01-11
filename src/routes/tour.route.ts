@@ -7,4 +7,6 @@ const tourInstance = new TourController();
 
 router.route("/").post(tourInstance?.createTour.bind(tourInstance));
 
+router.route("/all").get(tourInstance?.getAllTours.bind(tourInstance));
+
 export default router;

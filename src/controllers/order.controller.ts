@@ -4,10 +4,13 @@ import User from "../models/user.model.js";
 import Tour from "../models/tour.model.js";
 import {
   checkSignature,
+  getRazorpayCreds,
   getRazorpayInstance,
 } from "../utils/paymentGateway.js";
 import Order from "../models/order.model.js";
 import { GlobalRequestDTO } from "../types/user.types.js";
+import mongoose from "mongoose";
+import PurchasedTour from "../models/purchasedTour.model.js";
 
 export class OrderController {
   async createOrder(req: Request, res: Response): Promise<void> {
@@ -51,7 +54,7 @@ export class OrderController {
         .json(
           createResponseObject(
             422,
-            "Our payment parnter is currently not working we will be back soon"
+            "Our payment partner is currently facing issues we will be back soon"
           )
         );
     }
@@ -89,11 +92,15 @@ export class OrderController {
       return;
     }
 
+    console.log(">>>orderDetails: ", userID, tourID, newOrder);
+
     const razorpayOrderDetails = await razorpayInstance.orders.create({
       amount: Number(tourDetails?.amount) * 100,
       currency: "INR",
       receipt: newOrder?.id,
     });
+
+    console.log(">>>razorpayOrderDetails: ", razorpayOrderDetails);
 
     if (!razorpayOrderDetails) {
       res
@@ -183,15 +190,6 @@ export class OrderController {
   }
 
   async verifyPayment(req: Request, res: Response): Promise<void> {
-    const { userID } = req as GlobalRequestDTO;
-
-    const { orderID } = req.params;
-
-    if (!orderID) {
-      res.status(411).json(createResponseObject(411, "No orderID found"));
-      return;
-    }
-
     const razorpaySignature = req.headers["x-razorpay-signature"];
 
     const razorpayresponse = JSON.stringify(req.body);
@@ -223,13 +221,63 @@ export class OrderController {
     const { razorpay_order_id, razorpay_payment_id } =
       req.body.payload.payment.entity;
 
+    const {
+      tourID,
+      userID,
+      _id: orderID,
+    } = (await Order.findOne({
+      razorpayOrderID: razorpay_order_id,
+    }).select("tourID userID _id")) as {
+      tourID: string;
+      userID: string;
+      _id: string;
+    };
+
+    if (!tourID || !userID) {
+      res
+        .status(411)
+        .json(createResponseObject(411, "No details of the order found"));
+      return;
+    }
+
+    const session = await mongoose.startSession();
+
     if (req.body.event === "order.paid") {
       // Payment successful, update order status in DB
-      await Order.findOneAndUpdate(
-        { razorpayOrderID: razorpay_order_id },
-        { $set: { razorpayPaymentId: razorpay_payment_id, status: 1 } },
-        { new: true }
-      );
+      try {
+        session.startTransaction();
+
+        await Order.findOneAndUpdate(
+          { razorpayOrderID: razorpay_order_id },
+          { $set: { razorpayPaymentId: razorpay_payment_id, status: 1 } },
+          { new: true }
+        );
+
+        await PurchasedTour.create({
+          orderID,
+          tourID,
+          userID,
+        });
+
+        session.commitTransaction();
+
+        session.endSession();
+        res.status(200).json(createResponseObject(200, "Payment successful"));
+        return;
+      } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+
+        res
+          .status(500)
+          .json(
+            createResponseObject(
+              500,
+              "Something went wrong. Please try again in sometime"
+            )
+          );
+        return;
+      }
     }
 
     if (req.body.event === "payment.failed") {
@@ -242,5 +290,16 @@ export class OrderController {
     }
 
     res.status(200).json({ message: "Webhook processed" });
+    return;
+  }
+
+  async getRazoropayCreds(req: Request, res: Response): Promise<void> {
+    const razorpayCreds = getRazorpayCreds();
+
+    res.status(200).json({
+      ...razorpayCreds,
+    });
+
+    return;
   }
 }
