@@ -92,8 +92,6 @@ export class OrderController {
       return;
     }
 
-    console.log(">>>orderDetails: ", userID, tourID, newOrder);
-
     let razorpayOrderDetails;
 
     try {
@@ -115,8 +113,6 @@ export class OrderController {
       return;
     }
 
-    console.log(">>>razorpayOrderDetails: ", razorpayOrderDetails);
-
     if (!razorpayOrderDetails) {
       res
         .status(411)
@@ -130,14 +126,7 @@ export class OrderController {
     }
 
     let updateOrder;
-    // for (let i = 0; i < 3; i++) {
     try {
-      console.log(
-        ">>>orderID with id: ",
-        newOrder?.id,
-        ", orderID with _id: ",
-        newOrder?._id
-      );
       updateOrder = await Order.findOneAndUpdate(
         {
           _id: newOrder?._id,
@@ -149,17 +138,9 @@ export class OrderController {
         },
         { new: true }
       );
-
-      // if (updateOrder?.razorpayOrderID) {
-      //   break;
-      // }
     } catch (error) {
-      // console.log(
-      //   `Attempt ${i + 1} to update order with orderID - ${newOrder?.id}.`
-      // );
       console.log(">>>error in updating order: ", error);
     }
-    // }
 
     if (!updateOrder) {
       console.log(
@@ -232,15 +213,12 @@ export class OrderController {
       return;
     }
 
-    console.log(">>>razorpaySignature: ", JSON.stringify(req.headers));
-    console.log(">>>razorpayBody: ", JSON.stringify(req?.body));
     const doesSignatureMatch = checkSignature(
       razorpaySignature?.toString(),
       razorpayresponse
     );
 
     if (!doesSignatureMatch) {
-      console.log(">>>signature did not match");
       res
         .status(411)
         .json(createResponseObject(411, "Razorpay signature does not match"));
@@ -248,8 +226,6 @@ export class OrderController {
     }
 
     const { id, order_id } = req.body.payload.payment.entity;
-
-    console.log(">>>razorpay_order_id: ", id, order_id);
 
     if (req.body.event === "order.paid") {
       const session = await mongoose.startSession();
@@ -294,11 +270,9 @@ export class OrderController {
       // Payment failed, update order status in DB
       await Order.findOneAndUpdate(
         { razorpayOrderID: order_id },
-        { $set: { razorpayPaymentId: id, status: 2 } },
+        { $set: { razorpayPaymentID: id, status: 2 } },
         { new: true }
       );
-
-      console.log(">>>in failed block: ", id);
     }
 
     res.status(200).json({ message: "Webhook processed" });

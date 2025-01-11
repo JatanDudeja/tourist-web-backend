@@ -10,11 +10,10 @@ export async function checkJWT(
 ) {
   const authorization =
     req?.headers?.["authorization"] || req?.body?.accessToken;
-console.log(">>>authorization: ", authorization)
+
   let accessTokenSecretKey;
   try {
     accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET as string;
-console.log(">>>accessTokenSecretKey: ", accessTokenSecretKey)
 
   } catch (error) {
     res.status(500).json({
@@ -32,7 +31,6 @@ console.log(">>>accessTokenSecretKey: ", accessTokenSecretKey)
       accessToken,
       accessTokenSecretKey
     ) as JWTResDTO;
-    console.log(">>>accessTokenDetails: ", accessTokenDetails)
   } catch (error) {
     console.log(
       "CheckJWT Middleware: Error came while decoding access token or acces token not received."

@@ -24,7 +24,7 @@ const orderSchema = new mongoose.Schema(
     razorpayOrderID: {
       type: String,
     },
-    razorpayPaymentId: {
+    razorpayPaymentID: {
       type: String,
     },
     deletedAt: {
