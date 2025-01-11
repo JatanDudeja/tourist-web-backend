@@ -133,9 +133,10 @@ export class OrderController {
     let updateOrder;
     for (let i = 0; i < 3; i++) {
       try {
+        console.log(">>>orderID with id: ", newOrder?.id, ", orderID with _id: ", newOrder?._id);
         updateOrder = await Order.findOneAndUpdate(
           {
-            id: newOrder?.id,
+            id: newOrder?._id,
           },
           {
             $set: {
@@ -145,10 +146,14 @@ export class OrderController {
           { new: true }
         );
 
-        if (updateOrder) {
+        if (updateOrder?.razorpayOrderID) {
           break;
         }
-      } catch (error) {}
+      } catch (error) {
+        console.log(
+          `Attempt ${i + 1} to update order with orderID - ${newOrder?.id}.`
+        );
+      }
     }
 
     if (!updateOrder) {
