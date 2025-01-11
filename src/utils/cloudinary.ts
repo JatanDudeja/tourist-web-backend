@@ -96,7 +96,6 @@ const getSingleResouceFromFolder = async (
 const getResourcesFromFolder = async (
   folder: number,
   mainFolder = "static_audios",
-  paid?: boolean
 ) => {
   try {
     const response = await cloudinary.api.resources({
