@@ -7,8 +7,13 @@ import {
 import PurchasedTour from "../models/purchasedTour.model.js";
 import User from "../models/user.model.js";
 import { GlobalRequestDTO } from "../types/user.types.js";
+import {
+  getPresignedUrlsForFolder
+} from "../utils/s3Helper.js";
 
 export class TourController {
+  private readonly foldersArray = [1, 2, 3, 4, 5];
+
   async createTour(req: Request, res: Response) {
     const { mappingID, name, description, place, amount } = req.body || {};
 
@@ -89,9 +94,11 @@ export class TourController {
     );
 
     const [rawPlaceImages, rawPlaceAudios] = await Promise.all([
-      getResourcesFromFolder(Number(tourDetails?.mappingID), "static_images"),
-      getResourcesFromFolder(Number(tourDetails?.mappingID)),
+      getPresignedUrlsForFolder(`toursImages/${tourDetails?.mappingID}`),
+      getPresignedUrlsForFolder(`toursAudios/trial/${tourDetails?.mappingID}`),
     ]);
+
+    console.log(">>>rawPlaceAudios: ", rawPlaceAudios);
 
     const placesDescription = {
       id: tourDetails?._id,
@@ -102,29 +109,27 @@ export class TourController {
       mappingID: tourDetails?.mappingID,
     };
 
-    const filteredPlaceImages = rawPlaceImages?.map((item: any) => {
-      const isDefault = item?.public_id?.search("default");
-      return {
-        id: item?.asset_id,
-        imageID:
-          isDefault !== -1
-            ? "default"
-            : item?.public_id?.replace("/static_images/", "")?.slice(-1),
-        url: item?.secure_url,
-      };
-    });
+    const filteredPlaceImages = Array.isArray(rawPlaceImages)
+      ? rawPlaceImages?.map((item: any, id: number) => {
+          const isDefault = item?.name?.search("default");
+          return {
+            id: id + 1,
+            imageName: isDefault !== -1 ? "default" : item?.name,
+            url: item?.url,
+          };
+        })
+      : [];
 
-    const filteredPlaceAudios = rawPlaceAudios?.map((item: any) => {
-      const isDefault = item?.public_id?.search("default");
-      return {
-        id: item?.asset_id,
-        imageID:
-          isDefault !== -1
-            ? "default"
-            : item?.public_id?.replace("/static_audios/demo", "")?.slice(-1),
-        url: item?.secure_url,
-      };
-    });
+    const filteredPlaceAudios = Array.isArray(rawPlaceAudios)
+      ? rawPlaceAudios?.map((item: any, id: number) => {
+          const isDefault = item?.name?.search("default");
+          return {
+            id: id + 1,
+            imageName: isDefault !== -1 ? "default" : item?.name,
+            url: item?.url,
+          };
+        })
+      : [];
 
     const placeCompleteData = {
       ...placesDescription,
