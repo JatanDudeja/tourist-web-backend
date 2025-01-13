@@ -277,10 +277,22 @@ export class UsersController {
       return;
     }
 
+    const refreshTokenCookie = req?.cookies?.refreshToken;
+
+    if (!refreshTokenCookie) {
+      res.status(400).json({
+        statusCode: 400,
+        message: "Already logged out",
+      });
+      return;
+    }
+
     res.status(200).clearCookie("refreshToken").json({
       statusCode: 200,
       message: "User logged out!",
     });
+
+    return;
   }
 
   async getUserProfile(req: Request, res: Response): Promise<void> {

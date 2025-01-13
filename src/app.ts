@@ -9,12 +9,14 @@ import OrderRouter from "./routes/order.route.js";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: "http://localhost:3000", // Allow requests from this origin
+  credentials: true, // Allow cookies and credentials
+  methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
