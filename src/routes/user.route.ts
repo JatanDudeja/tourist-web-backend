@@ -6,13 +6,13 @@ const router = Router();
 
 const userInstance = new UsersController();
 
-router.route("/createUser").post(userInstance?.createUser.bind(userInstance));
+router.route("/create").post(userInstance?.createUser.bind(userInstance));
 router.route("/login").post(userInstance?.userLogin.bind(userInstance));
 router
   .route("/generateAccessToken")
   .post(userInstance.getAccessToken.bind(userInstance));
 router
-  .route("/logoutUser")
+  .route("/logout")
   .post(checkJWT, userInstance.logoutUser.bind(userInstance));
 
 router

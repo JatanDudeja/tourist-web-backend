@@ -169,7 +169,11 @@ export class UsersController {
 
       res
         .status(200)
-        .cookie("refreshToken", refreshToken, { secure: true })
+        .cookie("refreshToken", refreshToken, {
+          secure: true,
+          httpOnly: true,
+          expires: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+        })
         .json({
           statusCode: 200,
           message: "User logged in successfully",

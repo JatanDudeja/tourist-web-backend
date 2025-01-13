@@ -8,7 +8,8 @@ import PurchasedTour from "../models/purchasedTour.model.js";
 import User from "../models/user.model.js";
 import { GlobalRequestDTO } from "../types/user.types.js";
 import {
-  getPresignedUrlsForFolder
+  getPresignedUrlsForFolder,
+  getS3PresignedUrl,
 } from "../utils/s3Helper.js";
 
 export class TourController {
@@ -142,6 +143,57 @@ export class TourController {
       message: "Data fetched successfully.",
       data: placeCompleteData,
     });
+    return;
+  }
+
+  async getSubscribedTourAudio(req: Request, res: Response): Promise<void> {
+    const { tourID, language } = req?.params || {};
+
+    const { userID } = req as GlobalRequestDTO;
+
+    if (!tourID || !language) {
+      res.status(400).json({
+        statusCode: 400,
+        message: "No id or language found",
+      });
+    }
+
+    const [tourDetails, userDetails, tourPurchasedDetails] = await Promise.all([
+      Tour.findById(tourID).select("-createdAt -updatedAt -__v -deletedAt"),
+      User.findById(userID),
+      PurchasedTour.findOne({ userID, tourID }),
+    ]);
+
+    if (!tourDetails) {
+      res.status(404).json({
+        statusCode: 404,
+        message: "No tour found with this id",
+      });
+      return;
+    }
+
+    if (!tourPurchasedDetails) {
+      res.status(403).json({
+        statusCode: 403,
+        message: "Forbidden access",
+      });
+      return;
+    }
+
+    const paidAudioUrl = await getS3PresignedUrl(
+      `toursAudios/paid/${tourDetails?.mappingID}/${language}.mp3`,
+      20
+    );
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "Data fetched successfully.",
+      data: {
+        id: tourDetails?._id,
+        audioUrl: paidAudioUrl,
+      },
+    });
+
     return;
   }
 }
