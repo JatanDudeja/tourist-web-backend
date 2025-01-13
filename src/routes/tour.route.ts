@@ -12,4 +12,8 @@ router.route("/all").get(tourInstance?.getAllTours.bind(tourInstance));
 
 router.route("/:id").get(checkJWT, tourInstance?.getTour.bind(tourInstance));
 
+router
+  .route("/subscribed/:tourID/:language")
+  .get(checkJWT, tourInstance?.getSubscribedTourAudio.bind(tourInstance));
+
 export default router;

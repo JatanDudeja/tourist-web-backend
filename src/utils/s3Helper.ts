@@ -15,14 +15,25 @@ export function getS3ClientInstance() {
   });
 }
 
-export async function getS3PresignedUrl(key: string): Promise<string> {
+export async function getS3PresignedUrl(
+  key: string,
+  expiry?: number
+): Promise<string> {
   const s3Client = getS3ClientInstance();
   const params = {
     Bucket: bucket,
     Key: `${env}/${key}`,
   };
 
-  const signedUrl = await getSignedUrl(s3Client, new GetObjectCommand(params));
+  let signedUrl;
+
+  if (expiry) {
+    signedUrl = await getSignedUrl(s3Client, new GetObjectCommand(params), {
+      expiresIn: expiry,
+    });
+  } else {
+    signedUrl = await getSignedUrl(s3Client, new GetObjectCommand(params));
+  }
 
   return signedUrl;
 }
