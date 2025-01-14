@@ -181,8 +181,8 @@ export class TourController {
     }
 
     const paidAudioUrl = await getS3PresignedUrl(
-      `toursAudios/paid/${tourDetails?.mappingID}/${language}.mp3`,
-      20
+      `toursAudios/paid/${tourDetails?.mappingID}/${language}.mp3`
+      // TODO: add expiry time when going live
     );
 
     res.status(200).json({
