@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { UserDTO } from "../types/user.types.js";
 import { APIErrors } from "../utils/apiErrors.js";
 
@@ -70,7 +70,7 @@ userSchema.methods.generateToken = function (
       id: userID,
     },
     tokenSecret,
-    { expiresIn: timeToExpire }
+    { expiresIn: timeToExpire } as SignOptions
   );
 
   return signedToken;
