@@ -10,7 +10,12 @@ import OrderRouter from "./routes/order.route.js";
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://qa.indianarrated.in", "https://indianarrated.in", "https://www.indianarrated.in"], // Allow requests from this origin
+  origin: [
+    "http://localhost:3000",
+    "https://qa.indianarrated.com",
+    "https://indianarrated.com",
+    "https://www.indianarrated.com",
+  ], // Allow requests from this origin
   credentials: true, // Allow cookies and credentials
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
