@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { placesDescription } from "../static/index.js";
-import { APIErrors } from "../utils/apiErrors.js";
 import {
   getImageUrlCloudinary,
   getListOfImagesFromCloudinary,
@@ -11,6 +10,8 @@ import { GlobalRequestDTO } from "../types/user.types.js";
 import User from "../models/user.model.js";
 import PurchasedTour from "../models/purchasedTour.model.js";
 import Tour from "../models/tour.model.js";
+import { getPresignedUrlsForFolder } from "../utils/s3Helper.js";
+import { v4 as uuidv4 } from 'uuid';
 
 export class StaticDataController {
   private readonly folders = [1, 2, 3, 4, 5];
@@ -315,7 +316,7 @@ export class StaticDataController {
       });
     }
 
-    const paidAudiosContent = getSingleResouceFromFolder(1, "static_images")
+    const paidAudiosContent = getSingleResouceFromFolder(1, "static_images");
 
     res.status(200).json({
       statusCode: 200,
@@ -323,5 +324,47 @@ export class StaticDataController {
       data: paidAudiosContent,
     });
     return;
+  }
+
+  async getAllImagesNew(req: Request, res: Response) {
+    const allResources = [];
+
+    const toursDetails = await Tour.find({}).select(
+      "id mappingID"
+    );
+
+    for (const folder of toursDetails) {
+      const resource = await getPresignedUrlsForFolder(`toursImages/${folder?.mappingID}`);
+      allResources.push({ mappingID: folder?.mappingID, data: resource });
+    }
+
+    const dataInHashmap: any = {};
+
+    Array.isArray(allResources) &&
+      allResources?.forEach((item) => {
+        const { data } = item || {};
+
+        const filteredResponse = data?.map((dataObj) => {
+          const isDefault = (dataObj as any)?.name.search("default");
+          return {
+            id: uuidv4(),
+            imageID: isDefault !== -1
+              ? "default"
+              : dataObj?.name?.replace(
+                  /\.(jpg|jpeg|png|gif|bmp|webp|avif|svg|tiff|ico)$/gi,
+                  ""
+                ),
+            url: dataObj?.url,
+          };
+        });
+
+        dataInHashmap[item?.mappingID] = filteredResponse;
+      });
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "All Images fetched successfully",
+      newData: { length: Object.keys(dataInHashmap)?.length, data: dataInHashmap },
+    });
   }
 }

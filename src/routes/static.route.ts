@@ -16,9 +16,14 @@ router
   .route("/getStaticImages")
   .get(staticDataController.getImages.bind(staticDataController));
 
+/* Old Route */
+// router
+//   .route("/getAllImages")
+//   .get(staticDataController.getAllImages.bind(staticDataController));
+
 router
   .route("/getAllImages")
-  .get(staticDataController.getAllImages.bind(staticDataController));
+  .get(staticDataController.getAllImagesNew.bind(staticDataController));
 
 router
   .route("/getAllAudios")
