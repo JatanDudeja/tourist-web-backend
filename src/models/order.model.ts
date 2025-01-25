@@ -16,7 +16,7 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    status: {
+    status: { // 0 -> Pending, 1 -> Success, 2 -> Failed
       type: Number,
       enum: [0, 1, 2],
       required: true,
