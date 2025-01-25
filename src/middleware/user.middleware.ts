@@ -35,6 +35,13 @@ export async function checkJWT(
     console.log(
       "CheckJWT Middleware: Error came while decoding access token or acces token not received."
     );
+
+    res.status(401).json({
+      statusCode: 401,
+      message: "Unauthorized Access",
+    });
+
+    return;
   }
 
   const userID = accessTokenDetails?.id;
