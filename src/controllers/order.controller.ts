@@ -57,7 +57,22 @@ export class OrderController {
             "Our payment partner is currently facing issues we will be back soon"
           )
         );
-    }
+      }
+
+    try {
+      const purchasedTourDetails = await PurchasedTour.findOne({
+        userID,
+        tourID,
+      });
+
+      if (purchasedTourDetails) {
+        res
+          .status(411)
+          .json(createResponseObject(411, "Tour is already purchased"));
+
+        return;
+      }
+    } catch (error) {}
 
     let newOrder;
 
@@ -192,6 +207,54 @@ export class OrderController {
       .json(
         createResponseObject(200, "Order fetched successfully", orderDetails)
       );
+
+    return;
+  }
+
+  async getOrderDetailsByTourID(req: Request, res: Response): Promise<void> {
+    const { userID } = req as GlobalRequestDTO;
+
+    const { tourID } = req.params;
+
+    if (!tourID) {
+      res.status(411).json(createResponseObject(411, "No tourID found"));
+      return;
+    }
+
+    const tourDetails = await Tour.findById(tourID);
+
+    if (!tourDetails) {
+      res
+        .status(411)
+        .json(createResponseObject(411, "The tour is no longer available"));
+      return;
+    }
+
+    const orderDetails = await Order.findOne({
+      tourID: tourDetails?._id,
+      userID: userID,
+    });
+
+    if (!orderDetails) {
+      res
+        .status(411)
+        .json(createResponseObject(411, "No order exists for this tour"));
+      return;
+    }
+
+    res.status(200).json(
+      createResponseObject(200, "Order fetched successfully", {
+        userID,
+        tourID,
+        orderID: orderDetails?.id,
+        status:
+          orderDetails?.status === 0
+            ? "Pending"
+            : orderDetails?.status === 1
+            ? "Success"
+            : "Failed",
+      })
+    );
 
     return;
   }

@@ -21,6 +21,15 @@ router
     orderControllerInstance.getOrder.bind(orderControllerInstance)
   );
 
+router
+  .route("/:tourID/tour")
+  .get(
+    checkJWT,
+    orderControllerInstance.getOrderDetailsByTourID.bind(
+      orderControllerInstance
+    )
+  );
+
 // Create Order API
 router
   .route("/:tourID")
