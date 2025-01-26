@@ -156,6 +156,7 @@ export class TourController {
         statusCode: 400,
         message: "No id or language found",
       });
+      return;
     }
 
     const [tourDetails, userDetails, tourPurchasedDetails] = await Promise.all([
