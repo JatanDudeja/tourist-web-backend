@@ -57,7 +57,7 @@ export class OrderController {
             "Our payment partner is currently facing issues we will be back soon"
           )
         );
-      }
+    }
 
     try {
       const purchasedTourDetails = await PurchasedTour.findOne({
@@ -186,9 +186,77 @@ export class OrderController {
       return;
     }
 
-    const orderDetails = await Order.findById(orderID).select(
-      "-razorpayOrderID -razorpayPaymentId -deletedAt"
+    let orderDetails = await Order.findById(orderID).select(
+      "-razorpayOrderID -deletedAt"
     );
+
+    const razorpayPaymentID = orderDetails?.razorpayPaymentID;
+
+    if (!razorpayPaymentID) {
+      res
+        .status(411)
+        .json(
+          createResponseObject(411, "No order found for order_id: ", orderID)
+        );
+      return;
+    }
+
+    const razorpayInstance = getRazorpayInstance();
+
+    const paymentStatus = await razorpayInstance.payments.fetch(
+      razorpayPaymentID
+    );
+
+    if (paymentStatus.status === "captured") {
+      try {
+        orderDetails = await Order.findByIdAndUpdate(
+          orderDetails?._id,
+          { status: 1 },
+          { new: true }
+        );
+        console.log("Payment is successful!");
+      } catch (error) {
+        console.log(
+          `>>>error in updating order status for orderID: ${orderID}, err: `,
+          JSON.stringify(error)
+        );
+        res
+          .status(500)
+          .json(
+            createResponseObject(
+              500,
+              "Error in updating order status for orderID: ",
+              orderID
+            )
+          );
+
+        return;
+      }
+    } else if (paymentStatus.status === "failed") {
+      try {
+        orderDetails = await Order.findByIdAndUpdate(
+          orderDetails?._id,
+          { status: 2 },
+          { new: true }
+        );
+        console.log("Payment failed!");
+      } catch (error) {
+        res
+          .status(500)
+          .json(
+            createResponseObject(
+              500,
+              "Error in updating order status for orderID: ",
+              orderID
+            )
+          );
+        console.log(
+          `>>>error in updating order status for orderID: ${orderID}, err: `,
+          JSON.stringify(error)
+        );
+        return;
+      }
+    }
 
     if (userID != orderDetails?.userID?.toString()) {
       res.status(401).json(createResponseObject(401, "Unauthorized access"));
@@ -233,7 +301,7 @@ export class OrderController {
     const orderDetails = await Order.findOne({
       tourID: tourDetails?._id,
       userID: userID,
-    });
+    }).sort({ createdAt: -1 });
 
     if (!orderDetails) {
       res
