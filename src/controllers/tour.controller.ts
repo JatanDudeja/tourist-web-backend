@@ -126,7 +126,7 @@ export class TourController {
           const isDefault = item?.name?.search("default");
           return {
             id: id + 1,
-            imageName: isDefault !== -1 ? "default" : item?.name,
+            audioName: isDefault !== -1 ? "default" : item?.name,
             url: item?.url,
           };
         })

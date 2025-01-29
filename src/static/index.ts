@@ -1,6 +1,6 @@
 export const placesDescription = [
   {
-    id: 1,
+    mappingID: 1,
     name: "Sangam",
     description: {
       english:
@@ -13,7 +13,7 @@ export const placesDescription = [
     place: "Prayagraj",
   },
   {
-    id: 2,
+    mappingID: 2,
     name: "Anand Bhavan",
     description: {
       english: `Anand Bhavan is a historic mansion that once served as the residence of the Nehru family, one of India’s most prominent political dynasties. Today, this beautifully preserved building provides a glimpse into India’s freedom struggle, as it hosted key leaders like Mahatma Gandhi and served as a base for planning India’s independence. With its fascinating artifacts, documents, and memorabilia, Anand Bhavan captures the essence of India's pre-independence era.`,
@@ -25,7 +25,7 @@ export const placesDescription = [
     place: "",
   },
   {
-    id: 3,
+    mappingID: 3,
     name: "Hanuman Mandir",
     description: {
       english:
@@ -38,7 +38,7 @@ export const placesDescription = [
     place: "",
   },
   {
-    id: 4,
+    mappingID: 4,
     name: "Khusro Bagh",
     description: {
       english: "A beautiful garden and a historic Mughal-era burial complex, Khusro Bagh is the resting place of Prince Khusro, the eldest son of Emperor Jahangir. The tombs, adorned with intricate Mughal architecture and elegant carvings, are a testament to the artistry of the time. Walking through Khusro Bagh, visitors are transported back to the grandeur of the Mughal era amidst a serene landscape",
@@ -49,7 +49,7 @@ export const placesDescription = [
       "",
   },
   {
-    id: 5,
+    mappingID: 5,
     name: "Allahabad Fort",
     description: {
       english:
