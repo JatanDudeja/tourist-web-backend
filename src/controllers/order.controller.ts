@@ -80,7 +80,9 @@ export class OrderController {
       newOrder = await Order.create({
         userID: userDetails?.id,
         tourID: tourDetails?.id,
-        amount: tourDetails?.amount,
+        amount:
+          Number(tourDetails?.amount) +
+          (Number(tourDetails?.amount) * 18) / 100,
         status: 0,
       });
 
@@ -111,7 +113,10 @@ export class OrderController {
 
     try {
       razorpayOrderDetails = await razorpayInstance.orders.create({
-        amount: Number(tourDetails?.amount) * 100,
+        amount:
+          (Number(tourDetails?.amount) +
+            (Number(tourDetails?.amount) * 18) / 100) *
+          100,
         currency: "INR",
         receipt: newOrder?.id,
       });
