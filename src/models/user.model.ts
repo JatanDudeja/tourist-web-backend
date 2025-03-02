@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { UserDTO } from "../types/user.types.js";
 import { APIErrors } from "../utils/apiErrors.js";
